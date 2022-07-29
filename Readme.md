@@ -48,29 +48,25 @@ From Kinetic (any metapackage) or Indigo (any metapackage plus pip):
 ```
 mkdir -p catkin_ws/src/
 cd catkin_ws/src
-git clone --recursive https://github.com/mje-nz/natnet_ros.git
+git clone --recursive https://github.com/flochkristof/natnet_ros.git
 cd ..
 rosdep install -y --from-paths src --ignore-src
 catkin_make
 source devel/setup.bash
 ```
 
-Then, if you have a ROS Master running, you can test it with a fake server:
-
-```
-rosrun natnet_ros client _fake:=true
-```
+## Running
 
 or run against your real Motive instance:
 
 ```
-rosrun natnet_ros client _server:=(Motive IP)
+roslaunch natnet_ros optitrack.launch server:=(Motive IP)
 ```
 
 
 ## Motive settings
 
-**TODO**
+> NOTE: Because of modifications, be sure that the Motive RigidBody name matches the car_id ros param.
 
 Only multicast mode is supported.
 For old versions of Motive (< 2.0), only the default address (239.255.42.99) and port (1511) are supported.
@@ -124,11 +120,13 @@ rosrun tf static_transform_publisher 0 0 0 0 0 1.57079632679 mocap_z_up mocap 10
 
   NatNet server to connect to; will autodetect if not provided.
 
-* `~fake` (`bool`, default: false)
+
+
+* `~fake` (`bool`, default: false) -> Disabled
 
   Use fake data instead of connecting to a real server.
 
-* `~fake_v2` (`bool`, default: false)
+* `~fake_v2` (`bool`, default: false) -> Disabled
 
   Use fake NatNet 2.10 data instead of connecting to a real server.
 
@@ -136,7 +134,7 @@ rosrun tf static_transform_publisher 0 0 0 0 0 1.57079632679 mocap_z_up mocap 10
 
   Enable debug logging.
 
-* `~rate` (`int`, default: 100)
+* `~rate` (`int`, default: 100) -> Disabled
 
   If `fake` or `fake_v2` is true, the rate at which to publish the fake data (in Hz).
 

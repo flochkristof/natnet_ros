@@ -82,9 +82,10 @@ class NatnetClientNode(object):
 
         # {rigid body id: rigid body marker position list publisher}
         self.markerlist_pubs = {}  # type: dict[int, rospy.Publisher]
-
-        self.leftover_markers_pub = rospy.Publisher('~markers/leftovers', MarkerList, queue_size=10)
-        self.marker_vis_pub = rospy.Publisher('~markers/vis', Marker, queue_size=10)
+        
+        if self.car_id is None:
+            self.leftover_markers_pub = rospy.Publisher('~markers/leftovers', MarkerList, queue_size=10)
+            self.marker_vis_pub = rospy.Publisher('~markers/vis', Marker, queue_size=10)
         self.tf_broadcaster = tf.TransformBroadcaster()
         self.client = None  # type: natnet.comms.Client
         self.mocap_frame = rospy.get_param('~mocap_frame', 'mocap')
@@ -146,11 +147,17 @@ class NatnetClientNode(object):
         self.bone_names = {}
         self.marker_pubs = {}
         self.markerlist_pubs = {}
+        
+	# assuming that the name is valid
+        rb=next((b for b in rigid_bodies if b.name == self.car_id))
+            
+	if rb is not None:
+            self.rigid_body_id = rb.id_
+            self.rigid_body_pubs = rospy.Publisher('~pose', PoseStamped, queue_size=10)
+        else:
+            raise RuntimeError('RigidBody not found! Make sure that the vehicle is in the OptiTrack range!')
+            
 
-        for b in rigid_bodies:
-            # this code assumes that name is b.name is a valid ROS param
-            if b.name == self.car_id:
-                self.rigid_body_pubs = rospy.Publisher('~pose', PoseStamped, queue_size=10)
             
 
     def _publish_rigid_body_pose(self, header, rigid_body):
@@ -284,7 +291,7 @@ class NatnetClientNode(object):
         header.stamp = rospy.Time(timing.timestamp)
 
         if rigid_bodies:
-            rb=next((b for b in rigid_bodies if b.name == self.car_id), None)
+            rb=next((b for b in rigid_bodies if b.id_ == self.rigid_body_id), None)
             self._publish_rigid_body_pose(header, rb)
 
 
