@@ -57,8 +57,7 @@ def validate_name(name):
 
 class NatnetClientNode(object):
 
-    def __init__(self):
-        self.log = RosLogger()
+    def __init__(self, car_id=None):
 
         # {rigid body id: rigid body pose publisher}
         self.rigid_body_pubs = {}  # type: dict[int, rospy.Publisher]
@@ -135,6 +134,31 @@ class NatnetClientNode(object):
                 print('Will publish skeleton {} bone {} ({}) on {} '.format(s.id_, bone.id_, bone_name, topic))
                 pub = rospy.Publisher(topic, PoseStamped, queue_size=10)
                 self.bone_pubs[(s.id_, bone.id_)] = pub
+
+    def model_definitions_callback_RigidBody(self, rigid_bodies, skeletons, markersets):
+        # TODO: Make sure it's ok to just throw publishers away like this
+        self.rigid_body_pubs = {}
+        self.rigid_body_names = {}
+        self.skeleton_names = {}
+        self.bone_names = {}
+        self.marker_pubs = {}
+        self.markerlist_pubs = {}
+
+        for b in rigid_bodies:
+            # this code assumes that name is b.name is a valid ROS param
+            if b.name == self.car_id:
+                self.rigid_body_pubs = rospy.Publisher('~pose', PoseStamped, queue_size=10)
+            
+
+    def _publish_rigid_body_pose(self, header, rigid_body):
+        """Publish one specified RigidBody position"""
+    
+        message = PoseStamped()
+        message.header = header
+        message.pose.position = Point(*rigid_body.position)
+        message.pose.orientation = Quaternion(*rigid_body.orientation)
+        self.rigid_body_pubs.publish(message)
+        
 
     def _publish_rigid_body_poses(self, header, rigid_bodies):
         """Publish ~rigid_bodies/name/pose topics."""
@@ -247,6 +271,21 @@ class NatnetClientNode(object):
             self._publish_marker_points(header, markers)
             self._publish_marker_vis(header, markers)
 
+        
+    def mocap_frame_callback_RigidBodies(self, rigid_bodies, skeletons, markers, timing):
+        """Frame callback for only RigidBody broadcasting"""
+        self.log.debug('{:.1f}s: Received mocap frame'.format(timing.timestamp))
+
+        header = Header()
+        header.frame_id = self.mocap_frame
+        header.stamp = rospy.Time(timing.timestamp)
+
+        if rigid_bodies:
+            rb=next((b for b in rigid_bodies if b.id_ == self.car_id), None)
+            self._publish_rigid_body_pose(header, rb)
+
+
+    """
     def fake_connect(self, use_v2=False):
         rospack = rospkg.RosPack()
         path = rospack.get_path('python_natnet')
@@ -266,15 +305,25 @@ class NatnetClientNode(object):
         if use_v2:
             fake_connect = natnet.fakes.SingleFrameFakeClient.fake_connect_v2
         return fake_connect(rate, self.log, test_data_path)
+    """
+    
 
     def run(self):
+        """
         if rospy.get_param('~fake', False):
             client = self.fake_connect()
         elif rospy.get_param('~fake_v2', False):
             client = self.fake_connect(use_v2=True)
         else:
-            server = rospy.get_param('~server', None)
-            client = natnet.Client.connect(server, logger=self.log)
-        client.set_model_callback(self.model_definitions_callback)
-        client.set_callback(self.mocap_frame_callback)
+        """
+        server = rospy.get_param('~server', None)
+        client = natnet.Client.connect(server, logger=self.log)
+        if rospy.get_param("/car_id", None):
+            # stream only one RigidBody position
+            client.set_model_callback(self.model_definitions_callback_RigidBody)
+            client.set_callback(self.mocap_frame_callback_RigidBodies)
+
+        else:
+            client.set_model_callback(self.model_definitions_callback)
+            client.set_callback(self.mocap_frame_callback)
         client.spin()
