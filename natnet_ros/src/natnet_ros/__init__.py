@@ -60,6 +60,8 @@ class NatnetClientNode(object):
     def __init__(self, car_id=None):
         self.log=RosLogger()
 
+        self.car_id=car_id
+
         # {rigid body id: rigid body pose publisher}
         self.rigid_body_pubs = {}  # type: dict[int, rospy.Publisher]
 
