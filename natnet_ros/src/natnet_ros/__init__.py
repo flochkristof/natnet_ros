@@ -284,7 +284,7 @@ class NatnetClientNode(object):
         header.stamp = rospy.Time(timing.timestamp)
 
         if rigid_bodies:
-            rb=next((b for b in rigid_bodies if b.id_ == self.car_id), None)
+            rb=next((b for b in rigid_bodies if b.name == self.car_id), None)
             self._publish_rigid_body_pose(header, rb)
 
 
@@ -321,7 +321,7 @@ class NatnetClientNode(object):
         """
         server = rospy.get_param('~server', None)
         client = natnet.Client.connect(server, logger=self.log)
-        if rospy.get_param("/car_id", None):
+        if rospy.get_param("/car_id", None) is not None:
             # stream only one RigidBody position
             client.set_model_callback(self.model_definitions_callback_RigidBody)
             client.set_callback(self.mocap_frame_callback_RigidBodies)
