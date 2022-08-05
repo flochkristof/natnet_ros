@@ -328,7 +328,7 @@ class NatnetClientNode(object):
         """
         server = rospy.get_param('~server', None)
         client = natnet.Client.connect(server, logger=self.log)
-        if rospy.get_param("/car_id", None) is not None:
+        if self.car_id is not None:
             # stream only one RigidBody position
             client.set_model_callback(self.model_definitions_callback_RigidBody)
             client.set_callback(self.mocap_frame_callback_RigidBodies)
