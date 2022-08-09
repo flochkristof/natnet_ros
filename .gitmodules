@@ -1,3 +1,4 @@
 [submodule "python_natnet/python_natnet"]
 	path = python_natnet/python_natnet
 	url = https://github.com/flochkristof/python_natnet.git
+	branch = dev

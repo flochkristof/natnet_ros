@@ -7,7 +7,7 @@
   <!-- Fake data streaming is disabled -->
   
  
- <node pkg="natnet_ros" type="client" name="aimotion_mocap_node" output="screen">
+ <node pkg="natnet_ros" type="client.py" name="aimotion_mocap_node" output="screen">
    <param name="server" value="$(arg server)" />
  </node>
 </launch>
