@@ -7,7 +7,7 @@ catkin_python_setup()
 
 catkin_package(CATKIN_DEPENDS rospy natnet_msgs)
 
-catkin_install_python(PROGRAMS scripts/client DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+catkin_install_python(PROGRAMS scripts/client.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 catkin_install_python(PROGRAMS test/logtest DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 if(CATKIN_ENABLE_TESTING)
